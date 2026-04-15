@@ -2,8 +2,8 @@
 ==============================================================
 Day 10 Lab: Build Your First Automated ETL Pipeline
 ==============================================================
-Student ID: AI20K-XXXX  (<-- Thay XXXX bang ma so cua ban)
-Name: Your Name Here
+Student ID: 2A202600404
+Name: Khanh Nguyen
 
 Nhiem vu:
    1. Extract:   Doc du lieu tu file JSON
@@ -42,12 +42,16 @@ def extract(file_path):
         list: Danh sach cac records (dictionaries)
     """
     print(f"Extracting data from {file_path}...")
-    # TODO: Viet code doc file JSON o day
-    # Vi du:
-    #   with open(file_path, 'r') as f:
-    #       data = json.load(f)
-    #   return data
-    pass
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return data
+    except FileNotFoundError:
+        print(f"Error: {file_path} not found.")
+        return []
+    except json.JSONDecodeError:
+        print(f"Error: {file_path} is not a valid JSON file.")
+        return []
 
 
 def validate(data):
@@ -69,8 +73,17 @@ def validate(data):
     valid_records = []
     error_count = 0
 
-    # TODO: Lap qua data, kiem tra tung record
-    # Giu lai record hop le, dem record loi
+    for record in data:
+        price = record.get('price')
+        category = record.get('category')
+        
+        is_price_valid = price is not None and isinstance(price, (int, float)) and price > 0
+        is_category_valid = category is not None and isinstance(category, str) and category.strip() != ""
+        
+        if is_price_valid and is_category_valid:
+            valid_records.append(record)
+        else:
+            error_count += 1
 
     print(f"Validation complete. Valid: {len(valid_records)}, Errors: {error_count}")
     return valid_records
@@ -94,8 +107,14 @@ def transform(data):
     Returns:
         pd.DataFrame: DataFrame da duoc transform
     """
-    # TODO: Tao DataFrame va ap dung transformations
-    pass
+    if not data:
+        return pd.DataFrame()
+        
+    df = pd.DataFrame(data)
+    df['discounted_price'] = df['price'] * 0.9
+    df['category'] = df['category'].str.title()
+    df['processed_at'] = datetime.datetime.now().isoformat()
+    return df
 
 
 def load(df, output_path):
@@ -105,7 +124,7 @@ def load(df, output_path):
     Goi y:
        - df.to_csv(output_path, index=False)
     """
-    # TODO: Luu DataFrame ra CSV
+    df.to_csv(output_path, index=False)
     print(f"Data saved to {output_path}")
 
 
